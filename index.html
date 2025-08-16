@@ -13,22 +13,46 @@
     // Register service worker
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("service-worker.js");
+        navigator.serviceWorker.register("./service-worker.js")
+          .then(() => console.log("Service Worker registered"))
+          .catch((err) => console.error("SW registration failed:", err));
       });
     }
-    if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("./service-worker.js")
-      .then(() => console.log("Service Worker registered"))
-      .catch((err) => console.error("SW registration failed:", err));
-  });
-    }
   </script>
+  <style>
+    /* Dark mode styles */
+    body.dark-mode {
+      background-color: #121212;
+      color: white;
+    }
+
+    body.dark-mode h1, 
+    body.dark-mode h2 {
+      color: #ffffff;
+    }
+
+    body.dark-mode .progress-bar {
+      background-color: #333;
+    }
+
+    body.dark-mode .progress {
+      background-color: #4caf50;
+    }
+
+    body.dark-mode .toolbar,
+    body.dark-mode #subjects {
+      background-color: #1e1e1e;
+    }
+
+    body.dark-mode button {
+      background-color: #333;
+      color: white;
+      border: 1px solid #555;
+    }
+  </style>
 </head>
 <body>
-  <h1>📚 Study Routine Tracker
-                By Rafid Iqbal</h1>
+  <h1>📚 Study Routine Tracker By Rafid Iqbal</h1>
 
   <div id="overall-container">
     <h2>Overall Progress</h2>
@@ -41,43 +65,27 @@
 
   <div id="subjects"></div>
 
-  <script src="script.js"></script>
   <button id="darkModeToggle">🌙 Dark Mode</button>
 
-<style>
-  body.dark-mode {
-    background-color: #121212;
-    color: white;
-  }
+  <script src="script.js"></script>
+  <script>
+    const toggleBtn = document.getElementById("darkModeToggle");
 
-  body.dark-mode button {
-    background-color: #333;
-    color: white;
-    border: 1px solid #555;
-  }
-</style>
-
-<script>
-  const toggleBtn = document.getElementById("darkModeToggle");
-
-  // Load saved theme
-  if (localStorage.getItem("theme") === "dark") {
-    document.body.classList.add("dark-mode");
-  }
-
-  toggleBtn.addEventListener("click", () => {
-    document.body.classList.toggle("dark-mode");
-
-    // Save theme preference
-    if (document.body.classList.contains("dark-mode")) {
-      localStorage.setItem("theme", "dark");
-    } else {
-      localStorage.setItem("theme", "light");
+    // Load saved theme
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark-mode");
     }
-  });
-</script>
+
+    toggleBtn.addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+
+      // Save theme preference
+      if (document.body.classList.contains("dark-mode")) {
+        localStorage.setItem("theme", "dark");
+      } else {
+        localStorage.setItem("theme", "light");
+      }
+    });
+  </script>
 </body>
 </html>
-
-
-
