@@ -4,24 +4,40 @@
 <meta charset="UTF-8">
 <title>Study Routine Tracker</title>
 <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; transition: background 0.3s, color 0.3s; }
     h1 { text-align: center; }
     .subject { background: white; padding: 10px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1);}
     .progress-bar { background: #ddd; height: 20px; border-radius: 10px; overflow: hidden; margin: 5px 0;}
     .progress { background: #4caf50; height: 100%; width: 0%; transition: width 0.3s;}
-    .topic { margin: 5px 0; padding: 5px; background: #f9f9f9; border-radius: 6px;}
+    .topic { margin: 5px 0; padding: 5px; background: #f9f9f9; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; cursor: pointer;}
+    .topic-content { margin-left: 10px; display: none; flex-direction: column; gap: 5px; }
     button { margin-left: 5px; }
-    #overall-container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1); margin-bottom: 20px;}
+    #overall-container { background: white; padding: 15px; border-radius: 50%; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; box-shadow: 0 0 5px rgba(0,0,0,0.1);}
+    #overall-circle { transform: rotate(-90deg);}
+    .dark-mode { background: #121212; color: white; }
+    .dark-mode .subject { background: #1e1e1e; box-shadow: 0 0 5px rgba(255,255,255,0.1); }
+    .dark-mode .topic { background: #2a2a2a; }
+    .dark-mode .progress-bar { background: #333; }
+    .dark-mode .progress { background: #4caf50; }
+    .toolbar { text-align: center; margin-bottom: 10px; }
 </style>
 </head>
 <body>
 <h1>📚 Study Routine Tracker</h1>
+
 <div id="overall-container">
-    <h2>Overall Progress</h2>
-    <div class="progress-bar"><div id="overall-progress" class="progress"></div></div>
+    <svg id="overall-circle" width="100" height="100">
+        <circle cx="50" cy="50" r="45" stroke="#ddd" stroke-width="10" fill="none"/>
+        <circle id="overall-progress-circle" cx="50" cy="50" r="45" stroke="#4caf50" stroke-width="10" fill="none" stroke-dasharray="0 283"/>
+        <text id="overall-text" x="50" y="55" text-anchor="middle" font-size="18px" fill="#000">0%</text>
+    </svg>
 </div>
 
-<button onclick="addSubject()">➕ Add Subject</button>
+<div class="toolbar">
+    <button onclick="addSubject()">➕ Add Subject</button>
+    <button id="darkModeToggle">🌙 Dark Mode</button>
+</div>
+
 <div id="subjects"></div>
 
 <script>
@@ -32,57 +48,67 @@ let subjects = JSON.parse(localStorage.getItem("subjects")) || {
     "Higher Math": Array.from({length: 10}, (_, i) => ({name: `Topic ${i+1}`, done: 0, total: 10}))
 };
 
-let topicVisibility = {}; // Track collapsed/expanded state
+let subjectVisibility = {}; 
+let topicVisibility = {}; 
 
-function saveData() {
-    localStorage.setItem("subjects", JSON.stringify(subjects));
+function saveData() { localStorage.setItem("subjects", JSON.stringify(subjects)); }
+
+function toggleSubject(subject) {
+    subjectVisibility[subject] = !subjectVisibility[subject];
+    updateUI();
 }
 
-function toggleTopics(subject) {
-    topicVisibility[subject] = !topicVisibility[subject];
+function toggleTopic(subject, idx) {
+    topicVisibility[subject + "-" + idx] = !topicVisibility[subject + "-" + idx];
     updateUI();
+}
+
+function updateOverallProgress() {
+    let allDone = 0, allTotal = 0;
+    Object.values(subjects).forEach(arr => arr.forEach(t => { allDone += t.done; allTotal += t.total; }));
+    let percent = allTotal ? (allDone / allTotal) * 100 : 0;
+    let circle = document.getElementById("overall-progress-circle");
+    let text = document.getElementById("overall-text");
+    let radius = 45;
+    let circumference = 2 * Math.PI * radius;
+    let dash = (percent/100) * circumference;
+    circle.setAttribute("stroke-dasharray", dash + " " + circumference);
+    text.textContent = Math.round(percent) + "%";
 }
 
 function updateUI() {
     const container = document.getElementById("subjects");
     container.innerHTML = "";
 
-    let allDone = 0, allTotal = 0;
-
-    for (let subject in subjects) {
+    for(let subject in subjects){
+        if(subjectVisibility[subject] === undefined) subjectVisibility[subject] = true;
         let subDiv = document.createElement("div");
         subDiv.className = "subject";
 
-        let totalDone = subjects[subject].reduce((a, t) => a + t.done, 0);
-        let totalAll = subjects[subject].reduce((a, t) => a + t.total, 0);
-        let subProgress = totalAll > 0 ? (totalDone / totalAll) * 100 : 0;
+        let totalDone = subjects[subject].reduce((a,t)=>a+t.done,0);
+        let totalAll = subjects[subject].reduce((a,t)=>a+t.total,0);
+        let subProgress = totalAll ? (totalDone/totalAll)*100 : 0;
 
-        allDone += totalDone;
-        allTotal += totalAll;
-
-        // Initialize visibility if not set
-        if (topicVisibility[subject] === undefined) topicVisibility[subject] = true;
-
-        subDiv.innerHTML = `<h2>${subject}   
+        subDiv.innerHTML = `<h2>${subject}  
             <button onclick="deleteSubject('${subject}')">❌</button>  
             <button onclick="addTopic('${subject}')">➕ Topic</button>
-            <button onclick="toggleTopics('${subject}')">${topicVisibility[subject] ? '🔽' : '▶️'} Topics</button>
+            <button onclick="toggleSubject('${subject}')">${subjectVisibility[subject] ? '🔽' : '▶️'} Topics</button>
         </h2>
         <div class="progress-bar"><div class="progress" style="width:${subProgress}%"></div></div>`;
 
-        if (topicVisibility[subject]) {
-            subjects[subject].forEach((topic, idx) => {
+        if(subjectVisibility[subject]){
+            subjects[subject].forEach((topic, idx)=>{
+                let tKey = subject + "-" + idx;
+                if(topicVisibility[tKey] === undefined) topicVisibility[tKey] = true;
                 let topicDiv = document.createElement("div");
                 topicDiv.className = "topic";
-                let topicProgress = topic.total > 0 ? (topic.done / topic.total) * 100 : 0;
-                topicDiv.innerHTML = `
-                    ${topic.name} (${topic.done}/${topic.total})
-                    <div class="progress-bar"><div class="progress" style="width:${topicProgress}%"></div></div>
-                    <button onclick="editTopicProgress('${subject}', ${idx})">✏️ Progress</button>
-                    <button onclick="renameTopic('${subject}', ${idx})">✏️ Name</button>
-                    <button onclick="editTopicTotal('${subject}', ${idx})">✏️ Total</button>
-                    <button onclick="deleteTopic('${subject}', ${idx})">❌</button>
-                `;
+                topicDiv.innerHTML = `<span onclick="toggleTopic('${subject}',${idx})">${topic.name} (${topic.done}/${topic.total})</span>
+                <div class="topic-content" style="display:${topicVisibility[tKey]?'flex':'none'}">
+                    <button onclick="editTopicProgress('${subject}',${idx})">✏️ Progress</button>
+                    <button onclick="renameTopic('${subject}',${idx})">✏️ Name</button>
+                    <button onclick="editTopicTotal('${subject}',${idx})">✏️ Total</button>
+                    <button onclick="deleteTopic('${subject}',${idx})">❌</button>
+                </div>`;
                 subDiv.appendChild(topicDiv);
             });
         }
@@ -90,69 +116,50 @@ function updateUI() {
         container.appendChild(subDiv);
     }
 
-    let overallPercent = allTotal > 0 ? (allDone / allTotal) * 100 : 0;
-    document.getElementById("overall-progress").style.width = overallPercent + "%";
-
+    updateOverallProgress();
     saveData();
 }
 
 function addSubject() {
     let name = prompt("Enter new subject name:");
-    if (name && !subjects[name]) {
-        subjects[name] = [{name: "Topic 1", done: 0, total: 10}];
-        updateUI();
-    }
+    if(name && !subjects[name]) { subjects[name] = [{name:"Topic 1", done:0, total:10}]; updateUI();}
 }
 
-function deleteSubject(name) {
-    if (confirm(`Delete subject "${name}"?`)) {
-        delete subjects[name];
-        delete topicVisibility[name];
-        updateUI();
-    }
+function deleteSubject(name){
+    if(confirm(`Delete subject "${name}"?`)) { delete subjects[name]; delete subjectVisibility[name]; updateUI();}
 }
 
-function addTopic(subject) {
+function addTopic(subject){
     let name = prompt("Enter topic name:");
-    if (name) {
-        subjects[subject].push({name, done: 0, total: 10});
-        updateUI();
-    }
+    if(name){ subjects[subject].push({name,done:0,total:10}); updateUI();}
 }
 
-function deleteTopic(subject, idx) {
-    if (confirm("Delete this topic?")) {
-        subjects[subject].splice(idx, 1);
-        updateUI();
-    }
+function deleteTopic(subject,idx){
+    if(confirm("Delete this topic?")){ subjects[subject].splice(idx,1); updateUI();}
 }
 
-function editTopicProgress(subject, idx) {
-    let done = parseInt(prompt(`Enter completed lectures for "${subjects[subject][idx].name}":`, subjects[subject][idx].done));
-    if (!isNaN(done) && done >= 0 && done <= subjects[subject][idx].total) {
-        subjects[subject][idx].done = done;
-        updateUI();
-    }
+function editTopicProgress(subject,idx){
+    let done = parseInt(prompt(`Enter completed lectures for "${subjects[subject][idx].name}":`,subjects[subject][idx].done));
+    if(!isNaN(done) && done>=0 && done<=subjects[subject][idx].total){ subjects[subject][idx].done = done; updateUI();}
 }
 
-function renameTopic(subject, idx) {
-    let newName = prompt(`Enter new name for "${subjects[subject][idx].name}":`, subjects[subject][idx].name);
-    if (newName && newName.trim() !== "") {
-        subjects[subject][idx].name = newName.trim();
-        updateUI();
-    }
+function renameTopic(subject,idx){
+    let newName = prompt(`Enter new name for "${subjects[subject][idx].name}":`,subjects[subject][idx].name);
+    if(newName && newName.trim()!==""){ subjects[subject][idx].name = newName.trim(); updateUI();}
 }
 
-function editTopicTotal(subject, idx) {
-    let newTotal = parseInt(prompt(`Enter total lectures for "${subjects[subject][idx].name}":`, subjects[subject][idx].total));
-    if (!isNaN(newTotal) && newTotal > 0) {
-        if (subjects[subject][idx].done > newTotal) {
-            subjects[subject][idx].done = newTotal;
-        }
-        subjects[subject][idx].total = newTotal;
-        updateUI();
-    }
+function editTopicTotal(subject,idx){
+    let newTotal = parseInt(prompt(`Enter total lectures for "${subjects[subject][idx].name}":`,subjects[subject][idx].total));
+    if(!isNaN(newTotal) && newTotal>0){ if(subjects[subject][idx].done>newTotal) subjects[subject][idx].done=newTotal; subjects[subject][idx].total=newTotal; updateUI();}
 }
+
+// Dark mode toggle
+const darkBtn = document.getElementById("darkModeToggle");
+if(localStorage.getItem("theme")==="dark") document.body.classList.add("dark-mode");
+darkBtn.addEventListener("click",()=>{
+    document.body.classList.toggle("dark-mode");
+    localStorage.setItem("theme",document.body.classList.contains("dark-mode")?"dark":"light");
+});
 
 updateUI();
 </script>
