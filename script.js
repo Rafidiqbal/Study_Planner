@@ -161,10 +161,10 @@ if (!subjects[clean]) {
 subjects[clean] = [{ name: "Topic 1", done: 0, total: 10 }];
 updateUI();
 } else {
-alert("Subject already exi
-                          sts.");
+alert("Subject already exists.");
 }
 }
 };
 
-updateUI();
+updateUI
+    ();
