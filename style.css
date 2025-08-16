@@ -1,12 +1,182 @@
-body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
-h1 { text-align: center; margin-top: 0; }
-.subject { background: white; padding: 10px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
-.progress-bar { background: #ddd; height: 20px; border-radius: 10px; overflow: hidden; margin: 5px 0; }
-.progress { background: #4caf50; height: 100%; width: 0%; transition: width 0.3s; }
-.topic { margin: 5px 0; padding: 5px; background: #f9f9f9; border-radius: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.topic-title { min-width: 180px; }
-button { margin-left: 5px; cursor: pointer; }
-#overall-container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
-.toolbar { display: flex; justify-content: center; margin-bottom: 10px; }
-.subject h2 { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
-.actions { display: flex; gap: 6px; }
+/* Base styles */
+body { 
+  font-family: Arial, sans-serif; 
+  background: #f5f5f5; 
+  margin: 0; 
+  padding: 20px; 
+  transition: background 0.3s, color 0.3s;
+}
+
+h1 { 
+  text-align: center; 
+  margin-top: 0; 
+}
+
+.subject { 
+  background: white; 
+  padding: 10px; 
+  margin-bottom: 15px; 
+  border-radius: 8px; 
+  box-shadow: 0 0 5px rgba(0,0,0,0.1); 
+  transition: background 0.3s, color 0.3s;
+}
+
+.progress-bar { 
+  background: #ddd; 
+  height: 20px; 
+  border-radius: 10px; 
+  overflow: hidden; 
+  margin: 5px 0; 
+}
+
+.progress { 
+  background: #4caf50; 
+  height: 100%; 
+  width: 0%; 
+  transition: width 0.3s, background 0.3s; 
+}
+
+.topic { 
+  margin: 5px 0; 
+  padding: 5px; 
+  background: #f9f9f9; 
+  border-radius: 6px; 
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+  flex-wrap: wrap; 
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+}
+
+.topic-title { 
+  min-width: 180px; 
+}
+
+.subtopic { 
+  margin-left: 20px; 
+  padding: 4px 6px; 
+  background: #eee; 
+  border-radius: 5px; 
+  display: none; /* hidden by default */ 
+  transition: background 0.3s, color 0.3s;
+}
+
+button { 
+  margin-left: 5px; 
+  cursor: pointer; 
+  transition: background 0.3s, color 0.3s;
+}
+
+#overall-container { 
+  background: white; 
+  padding: 15px; 
+  border-radius: 8px; 
+  box-shadow: 0 0 5px rgba(0,0,0,0.1); 
+  margin-bottom: 20px; 
+  transition: background 0.3s, color 0.3s;
+}
+
+.toolbar { 
+  display: flex; 
+  justify-content: center; 
+  margin-bottom: 10px; 
+  transition: background 0.3s;
+}
+
+.subject h2 { 
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+  justify-content: space-between; 
+}
+
+.actions { 
+  display: flex; 
+  gap: 6px; 
+}
+
+/* Circular overall progress */
+.progress-circle {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 10px 0;
+}
+
+.progress-circle svg {
+  transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
+}
+
+.progress-circle path {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.progress-circle .bg {
+  stroke: #eee;
+}
+
+.progress-circle .progress {
+  stroke: #4caf50;
+}
+
+.progress-circle span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* Dark mode styles */
+body.dark-mode {
+  background-color: #121212;
+  color: white;
+}
+
+body.dark-mode h1,
+body.dark-mode h2 {
+  color: #ffffff;
+}
+
+body.dark-mode .subject,
+body.dark-mode .topic,
+body.dark-mode .subtopic,
+body.dark-mode #subjects,
+body.dark-mode .toolbar,
+body.dark-mode #overall-container {
+  background-color: #1e1e1e;
+  color: #fff;
+  border: 1px solid #333;
+}
+
+body.dark-mode .progress-bar {
+  background-color: #333;
+}
+
+body.dark-mode .progress {
+  background-color: #66ff66; /* optional brighter green for dark mode */
+}
+
+body.dark-mode button {
+  background-color: #333;
+  color: white;
+  border: 1px solid #555;
+}
+
+body.dark-mode .progress-circle .bg {
+  stroke: #333;
+}
+
+body.dark-mode .progress-circle .progress {
+  stroke: #66ff66;
+}
+
+body.dark-mode .progress-circle span {
+  color: #fff;
+}
