@@ -1,11 +1,13 @@
-// Initialize subjects; use stored data if valid, otherwise start fresh at 0%
-const stored = JSON.parse(localStorage.getItem("subjects"));
-const subjects = stored && Object.keys(stored).length ? stored : {
+// Safe initialization: keep existing data, only add missing subjects
+const defaultSubjects = {
   "Physics": Array.from({ length: 10 }, (_, i) => ({ name: `Topic ${i + 1}`, done: 0, total: 10, subtopics: [] })),
   "Chemistry": Array.from({ length: 10 }, (_, i) => ({ name: `Topic ${i + 1}`, done: 0, total: 10, subtopics: [] })),
   "Biology": Array.from({ length: 10 }, (_, i) => ({ name: `Topic ${i + 1}`, done: 0, total: 10, subtopics: [] })),
   "Higher Math": Array.from({ length: 10 }, (_, i) => ({ name: `Topic ${i + 1}`, done: 0, total: 10, subtopics: [] }))
 };
+
+const stored = JSON.parse(localStorage.getItem("subjects")) || {};
+const subjects = { ...defaultSubjects, ...stored }; // merge stored data with defaults
 
 const subjectsEl = document.getElementById("subjects");
 const addSubjectBtn = document.getElementById("addSubjectBtn");
