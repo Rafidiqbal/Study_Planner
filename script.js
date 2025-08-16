@@ -1,4 +1,23 @@
-// Safe initialization: keep existing data, only add missing subjects
+// Load stored data
+const stored = JSON.parse(localStorage.getItem("subjects")) || {};
+
+// Ensure all default subjects exist
+const subjects = { ...stored }; // start with stored data
+
+Object.keys(defaultSubjects).forEach(sub => {
+  if (!subjects[sub]) {
+    subjects[sub] = defaultSubjects[sub];
+  }
+});
+
+// Make sure every topic has a subtopics array
+Object.values(subjects).forEach(topicList => {
+  topicList.forEach(topic => {
+    if (!topic.hasOwnProperty("subtopics")) {
+      topic.subtopics = [];
+    }
+  });
+});// Safe initialization: keep existing data, only add missing subjects
 const defaultSubjects = {
   "Physics": Array.from({ length: 10 }, (_, i) => ({ name: `Topic ${i + 1}`, done: 0, total: 10, subtopics: [] })),
   "Chemistry": Array.from({ length: 10 }, (_, i) => ({ name: `Topic ${i + 1}`, done: 0, total: 10, subtopics: [] })),
@@ -199,3 +218,4 @@ addSubjectBtn.onclick = () => {
 };
 
 updateUI();
+
