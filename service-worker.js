@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = Date.now(); // Always unique per reload
 const CACHE_NAME = `routine-cache-${CACHE_VERSION}`;
 const ASSETS = [
   "./",
@@ -28,18 +28,32 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch: cache-first with network fallback
+// Fetch: network-first for JS, cache-first for others
 self.addEventListener("fetch", (event) => {
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).then((resp) => {
-        const copy = resp.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-        return resp;
-      }).catch(() => {
-        // Optional: return a fallback response if needed
-      });
-    })
-  );
+  const requestUrl = event.request.url;
+
+  if (requestUrl.endsWith(".js")) {
+    // JS files: always try network first
+    event.respondWith(
+      fetch(event.request)
+        .then((resp) => {
+          const copy = resp.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          return resp;
+        })
+        .catch(() => caches.match(event.request))
+    );
+  } else {
+    // Other files: cache-first
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        if (cached) return cached;
+        return fetch(event.request).then((resp) => {
+          const copy = resp.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          return resp;
+        });
+      })
+    );
+  }
 });
