@@ -1,23 +1,4 @@
-// Load stored data
-const stored = JSON.parse(localStorage.getItem("subjects")) || {};
-
-// Ensure all default subjects exist
-const subjects = { ...stored }; // start with stored data
-
-Object.keys(defaultSubjects).forEach(sub => {
-  if (!subjects[sub]) {
-    subjects[sub] = defaultSubjects[sub];
-  }
-});
-
-// Make sure every topic has a subtopics array
-Object.values(subjects).forEach(topicList => {
-  topicList.forEach(topic => {
-    if (!topic.hasOwnProperty("subtopics")) {
-      topic.subtopics = [];
-    }
-  });
-});// Safe initialization: keep existing data, only add missing subjects
+// Default subjects in case some are missing
 const defaultSubjects = {
   "Physics": Array.from({ length: 10 }, (_, i) => ({ name: `Topic ${i + 1}`, done: 0, total: 10, subtopics: [] })),
   "Chemistry": Array.from({ length: 10 }, (_, i) => ({ name: `Topic ${i + 1}`, done: 0, total: 10, subtopics: [] })),
@@ -25,8 +6,21 @@ const defaultSubjects = {
   "Higher Math": Array.from({ length: 10 }, (_, i) => ({ name: `Topic ${i + 1}`, done: 0, total: 10, subtopics: [] }))
 };
 
-const stored = JSON.parse(localStorage.getItem("subjects")) || {};
-const subjects = { ...defaultSubjects, ...stored }; // merge stored data with defaults
+// Load stored data
+let stored = JSON.parse(localStorage.getItem("subjects")) || {};
+let subjects = { ...stored };
+
+// Add default subjects if missing
+Object.keys(defaultSubjects).forEach(sub => {
+  if (!subjects[sub]) subjects[sub] = defaultSubjects[sub];
+});
+
+// Make sure every topic has subtopics
+Object.values(subjects).forEach(topicList => {
+  topicList.forEach(topic => {
+    if (!topic.hasOwnProperty("subtopics")) topic.subtopics = [];
+  });
+});
 
 const subjectsEl = document.getElementById("subjects");
 const addSubjectBtn = document.getElementById("addSubjectBtn");
@@ -96,7 +90,7 @@ function updateUI() {
     header.appendChild(headerBtns);
     subDiv.appendChild(header);
 
-    // Subject progress bar
+    // Subject progress
     const totalDone = topicList.reduce((a, t) => a + t.done, 0);
     const totalAll = topicList.reduce((a, t) => a + t.total, 0);
     const subProgBar = document.createElement("div");
@@ -129,7 +123,8 @@ function updateUI() {
 
       const editProgressBtn = document.createElement("button");
       editProgressBtn.textContent = "✏️ Progress";
-      editProgressBtn.onclick = () => {
+      editProgressBtn.onclick = (e) => {
+        e.stopPropagation();
         const val = parseInt(prompt(`Enter completed lectures for "${topic.name}":`, String(topic.done)), 10);
         if (!Number.isNaN(val) && val >= 0 && val <= topic.total) {
           topic.done = val;
@@ -139,7 +134,8 @@ function updateUI() {
 
       const renameBtn = document.createElement("button");
       renameBtn.textContent = "✏️ Name";
-      renameBtn.onclick = () => {
+      renameBtn.onclick = (e) => {
+        e.stopPropagation();
         const newName = prompt(`Enter new name for "${topic.name}":`, topic.name);
         if (newName && newName.trim() !== "") {
           topic.name = newName.trim();
@@ -149,7 +145,8 @@ function updateUI() {
 
       const editTotalBtn = document.createElement("button");
       editTotalBtn.textContent = "✏️ Total";
-      editTotalBtn.onclick = () => {
+      editTotalBtn.onclick = (e) => {
+        e.stopPropagation();
         const newTotal = parseInt(prompt(`Enter total lectures for "${topic.name}":`, String(topic.total)), 10);
         if (!Number.isNaN(newTotal) && newTotal > 0) {
           if (topic.done > newTotal) topic.done = newTotal;
@@ -160,7 +157,8 @@ function updateUI() {
 
       const deleteBtn = document.createElement("button");
       deleteBtn.textContent = "❌";
-      deleteBtn.onclick = () => {
+      deleteBtn.onclick = (e) => {
+        e.stopPropagation();
         if (confirm("Delete this topic?")) {
           topicList.splice(idx, 1);
           updateUI();
@@ -176,7 +174,7 @@ function updateUI() {
       topicDiv.appendChild(bar);
       topicDiv.appendChild(btns);
 
-      // Subtopics container
+      // Subtopics
       const subContainer = document.createElement("div");
       subContainer.className = "subtopics-container";
       subContainer.style.display = "none";
@@ -218,4 +216,3 @@ addSubjectBtn.onclick = () => {
 };
 
 updateUI();
-
