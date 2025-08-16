@@ -9,6 +9,7 @@
   <link rel="icon" href="icon-192.png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="stylesheet" href="style.css" />
+
   <script>
     // Register service worker
     if ("serviceWorker" in navigator) {
@@ -19,55 +20,45 @@
       });
     }
   </script>
-  <style>
-    /* Dark mode styles */
-    body.dark-mode {
-      background-color: #121212;
-      color: white;
-    }
-
-    body.dark-mode h1, 
-    body.dark-mode h2 {
-      color: #ffffff;
-    }
-
-    body.dark-mode .progress-bar {
-      background-color: #333;
-    }
-
-    body.dark-mode .progress {
-      background-color: #4caf50;
-    }
-
-    body.dark-mode .toolbar,
-    body.dark-mode #subjects {
-      background-color: #1e1e1e;
-    }
-
-    body.dark-mode button {
-      background-color: #333;
-      color: white;
-      border: 1px solid #555;
-    }
-  </style>
 </head>
 <body>
   <h1>📚 Study Routine Tracker By Rafid Iqbal</h1>
 
+  <!-- Circular Overall Progress -->
   <div id="overall-container">
     <h2>Overall Progress</h2>
-    <div class="progress-bar"><div id="overall-progress" class="progress"></div></div>
+    <div class="progress-circle">
+      <svg viewBox="0 0 36 36">
+        <path class="bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+        <path class="progress" stroke-dasharray="0,100" />
+      </svg>
+      <span id="progressText">0%</span>
+    </div>
   </div>
 
   <div class="toolbar">
     <button id="addSubjectBtn">➕ Add Subject</button>
   </div>
 
-  <div id="subjects"></div>
+  <div id="subjects">
+    <!-- Example subject with topics and subtopics -->
+    <div class="subject">
+      <h2>Physics <button>Edit</button></h2>
+      <div class="topic" onclick="toggleSubtopics(this)">Mechanics</div>
+      <div class="subtopic">Kinematics</div>
+      <div class="subtopic">Dynamics</div>
+      <div class="subtopic">Work & Energy</div>
+
+      <div class="topic" onclick="toggleSubtopics(this)">Thermodynamics</div>
+      <div class="subtopic">Laws of Thermodynamics</div>
+      <div class="subtopic">Heat Transfer</div>
+    </div>
+  </div>
 
   <button id="darkModeToggle">🌙 Dark Mode</button>
 
   <script src="script.js"></script>
+
   <script>
     const toggleBtn = document.getElementById("darkModeToggle");
 
@@ -86,6 +77,32 @@
         localStorage.setItem("theme", "light");
       }
     });
+
+    // Toggle subtopics visibility
+    function toggleSubtopics(topicElement) {
+      const parent = topicElement.parentElement;
+      const subtopics = parent.querySelectorAll(".subtopic");
+      subtopics.forEach(st => {
+        if (st.style.display === "none" || st.style.display === "") {
+          st.style.display = "block";
+        } else {
+          st.style.display = "none";
+        }
+      });
+    }
+
+    // Example: Update circular progress (0-100)
+    function updateOverallProgress(percent) {
+      const circle = document.querySelector(".progress-circle .progress");
+      const text = document.getElementById("progressText");
+      const radius = 15.9155; // same as SVG path
+      const dash = (percent / 100) * 2 * Math.PI * radius;
+      circle.setAttribute("stroke-dasharray", `${dash}, 100`);
+      text.textContent = `${percent}%`;
+    }
+
+    // Demo progress
+    updateOverallProgress(60);
   </script>
 </body>
 </html>
