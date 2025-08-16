@@ -1,109 +1,75 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Routine Tracker</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#4CAF50" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon-192.png" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css" />
-  <script>
-    // Register service worker
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./service-worker.js")
-          .then(() => console.log("Service Worker registered"))
-          .catch((err) => console.error("SW registration failed:", err));
-      });
-    }
-  </script>
-  <style>
-    /* Dark mode styles */
-    body.dark-mode {
-      background-color: #121212;
-      color: white;
-    }
-    body.dark-mode h1,
-    body.dark-mode h2 {
-      color: #ffffff;
-    }
-    body.dark-mode .progress-bar {
-      background-color: #333;
-    }
-    body.dark-mode .progress {
-      background-color: #4caf50;
-    }
-    body.dark-mode .toolbar,
-    body.dark-mode #subjects {
-      background-color: #1e1e1e;
-    }
-    body.dark-mode button {
-      background-color: #333;
-      color: white;
-      border: 1px solid #555;
-    }
+<!DOCTYPE html>  <html lang="en">    <head>    
+  <meta charset="UTF-8" />    
+  <title>Routine Tracker</title>    
+  <meta name="viewport" content="width=device-width, initial-scale=1" />    
+  <meta name="theme-color" content="#4CAF50" />    
+  <link rel="manifest" href="manifest.json" />    
+  <link rel="icon" href="icon-192.png" />    
+  <link rel="apple-touch-icon" href="icon-192.png" />    
+  <link rel="stylesheet" href="style.css" />    
+  <script>    
+    // Register service worker    
+    if ("serviceWorker" in navigator) {    
+      window.addEventListener("load", () => {    
+        navigator.serviceWorker.register("./service-worker.js")    
+          .then(() => console.log("Service Worker registered"))    
+          .catch((err) => console.error("SW registration failed:", err));    
+      });    
+    }    
+  </script>    
+  <style>    
+    /* Dark mode styles */    
+    body.dark-mode {    
+      background-color: #121212;    
+      color: white;    
+    }  body.dark-mode h1,     
+body.dark-mode h2 {    
+  color: #ffffff;    
+}    body.dark-mode .progress-bar {
+background-color: #333;
+}
 
-    /* Subtopic container */
-    .subtopics-container {
-      display: none;
-      margin-left: 20px;
-      margin-top: 5px;
-    }
-    .subtopic {
-      background: #e0e0e0;
-      padding: 4px 8px;
-      margin: 2px 0;
-      border-radius: 4px;
-    }
-    body.dark-mode .subtopic {
-      background: #2a2a2a;
-      color: #fff;
-    }
-  </style>
-</head>
-<body>
-  <h1>📚 Study Routine Tracker By Rafid Iqbal</h1>
+body.dark-mode .progress {
+background-color: #4caf50;
+}
 
-  <div id="overall-container">
-    <h2>Overall Progress</h2>
-    <div class="progress-bar"><div id="overall-progress" class="progress"></div></div>
-  </div>
+body.dark-mode .toolbar,
+body.dark-mode #subjects {
+background-color: #1e1e1e;
+}
 
-  <div class="toolbar">
-    <button id="addSubjectBtn">➕ Add Subject</button>
-  </div>
+body.dark-mode button {
+background-color: #333;
+color: white;
+border: 1px solid #555;
+}
 
-  <div id="subjects"></div>
+  </style>    
+</head>    
+<body>    
+  <h1>📚 Study Routine Tracker By Rafid Iqbal</h1>    <div id="overall-container">    
+    <h2>Overall Progress</h2>    
+    <div class="progress-bar"><div id="overall-progress" class="progress"></div></div>    
+  </div>    <div class="toolbar">    
+    <button id="addSubjectBtn">➕ Add Subject</button>    
+  </div>    <div id="subjects"></div>  <button id="darkModeToggle">🌙 Dark Mode</button>    <script src="script.js"></script>    <script>    const toggleBtn = document.getElementById("darkModeToggle");    
 
-  <button id="darkModeToggle">🌙 Dark Mode</button>
+// Load saved theme    
+if (localStorage.getItem("theme") === "dark") {    
+  document.body.classList.add("dark-mode");    
+}    
 
-  <script src="script.js"></script>
+toggleBtn.addEventListener("click", () => {    
+  document.body.classList.toggle("dark-mode");    
 
-  <script>
-    const toggleBtn = document.getElementById("darkModeToggle");
+  // Save theme preference    
+  if (document.body.classList.contains("dark-mode")) {    
+    localStorage.setItem("theme", "dark");    
+  } else {    
+    localStorage.setItem("theme", "light");    
+  }    
+});
 
-    // Load saved theme
-    if (localStorage.getItem("theme") === "dark") {
-      document.body.classList.add("dark-mode");
-    }
+</script>  </body>
 
-    toggleBtn.addEventListener("click", () => {
-      document.body.classList.toggle("dark-mode");
-
-      if (document.body.classList.contains("dark-mode")) {
-        localStorage.setItem("theme", "dark");
-      } else {
-        localStorage.setItem("theme", "light");
-      }
-    });
-
-    // Function to toggle subtopics
-    function toggleSubtopics(container) {
-      if (!container) return;
-      container.style.display = container.style.display === "none" ? "block" : "none";
-    }
-  </script>
-</body>
 </html>
