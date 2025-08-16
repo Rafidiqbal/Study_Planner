@@ -1,4 +1,6 @@
-const subjects = JSON.parse(localStorage.getItem("subjects")) || {
+// Initialize subjects; use stored data if valid, otherwise start fresh at 0%
+const stored = JSON.parse(localStorage.getItem("subjects"));
+const subjects = stored && Object.keys(stored).length ? stored : {
   "Physics": Array.from({ length: 10 }, (_, i) => ({ name: `Topic ${i + 1}`, done: 0, total: 10, subtopics: [] })),
   "Chemistry": Array.from({ length: 10 }, (_, i) => ({ name: `Topic ${i + 1}`, done: 0, total: 10, subtopics: [] })),
   "Biology": Array.from({ length: 10 }, (_, i) => ({ name: `Topic ${i + 1}`, done: 0, total: 10, subtopics: [] })),
@@ -17,8 +19,6 @@ function pct(done, total) {
 }
 
 function toggleSubtopics(topicElement) {
-  const topic = topicElement.topicData;
-  if (!topic.subtopics) topic.subtopics = [];
   const container = topicElement.subContainer;
   container.style.display = container.style.display === "none" || container.style.display === "" ? "block" : "none";
 }
@@ -33,12 +33,8 @@ function updateOverallProgress() {
   });
   const percent = allTotal > 0 ? (allDone / allTotal) * 100 : 0;
 
-  const circle = document.querySelector(".progress-circle .progress");
-  const text = document.getElementById("progressText");
-  const radius = 15.9155;
-  const dash = (percent / 100) * 2 * Math.PI * radius;
-  circle.setAttribute("stroke-dasharray", `${dash}, 100`);
-  text.textContent = `${Math.round(percent)}%`;
+  const overall = document.getElementById("overall-progress");
+  overall.style.width = percent + "%";
 }
 
 function updateUI() {
@@ -90,11 +86,12 @@ function updateUI() {
     subProgBar.appendChild(subProg);
     subDiv.appendChild(subProgBar);
 
-    // Topics with toggleable subtopics
+    // Topics
     topicList.forEach((topic, idx) => {
       const topicDiv = document.createElement("div");
       topicDiv.className = "topic";
-      topicDiv.topicData = topic; // link data
+      topicDiv.topicData = topic;
+
       const title = document.createElement("div");
       title.className = "topic-title";
       title.textContent = `${topic.name} (${topic.done}/${topic.total})`;
@@ -182,9 +179,9 @@ function updateUI() {
 
   saveData();
   updateOverallProgress();
-}
+};
 
-// Add Subject (toolbar)
+// Add Subject button
 addSubjectBtn.onclick = () => {
   const name = prompt("Enter new subject name:");
   if (name) {
