@@ -1,75 +1,160 @@
-<!DOCTYPE html>  <html lang="en">    <head>    
-  <meta charset="UTF-8" />    
-  <title>Routine Tracker</title>    
-  <meta name="viewport" content="width=device-width, initial-scale=1" />    
-  <meta name="theme-color" content="#4CAF50" />    
-  <link rel="manifest" href="manifest.json" />    
-  <link rel="icon" href="icon-192.png" />    
-  <link rel="apple-touch-icon" href="icon-192.png" />    
-  <link rel="stylesheet" href="style.css" />    
-  <script>    
-    // Register service worker    
-    if ("serviceWorker" in navigator) {    
-      window.addEventListener("load", () => {    
-        navigator.serviceWorker.register("./service-worker.js")    
-          .then(() => console.log("Service Worker registered"))    
-          .catch((err) => console.error("SW registration failed:", err));    
-      });    
-    }    
-  </script>    
-  <style>    
-    /* Dark mode styles */    
-    body.dark-mode {    
-      background-color: #121212;    
-      color: white;    
-    }  body.dark-mode h1,     
-body.dark-mode h2 {    
-  color: #ffffff;    
-}    body.dark-mode .progress-bar {
-background-color: #333;
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Study Routine Tracker</title>
+<style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    h1 { text-align: center; }
+    .subject { background: white; padding: 10px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1);}
+    .progress-bar { background: #ddd; height: 20px; border-radius: 10px; overflow: hidden; margin: 5px 0;}
+    .progress { background: #4caf50; height: 100%; width: 0%; transition: width 0.3s;}
+    .topic { margin: 5px 0; padding: 5px; background: #f9f9f9; border-radius: 6px;}
+    button { margin-left: 5px; }
+    #overall-container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1); margin-bottom: 20px;}
+</style>
+</head>
+<body>
+<h1>📚 Study Routine Tracker</h1>
+<div id="overall-container">
+    <h2>Overall Progress</h2>
+    <div class="progress-bar"><div id="overall-progress" class="progress"></div></div>
+</div>
+
+<button onclick="addSubject()">➕ Add Subject</button>
+<div id="subjects"></div>
+
+<script>
+let subjects = JSON.parse(localStorage.getItem("subjects")) || {
+    "Physics": Array.from({length: 10}, (_, i) => ({name: `Topic ${i+1}`, done: 0, total: 10})),
+    "Chemistry": Array.from({length: 10}, (_, i) => ({name: `Topic ${i+1}`, done: 0, total: 10})),
+    "Biology": Array.from({length: 10}, (_, i) => ({name: `Topic ${i+1}`, done: 0, total: 10})),
+    "Higher Math": Array.from({length: 10}, (_, i) => ({name: `Topic ${i+1}`, done: 0, total: 10}))
+};
+
+let topicVisibility = {}; // Track collapsed/expanded state
+
+function saveData() {
+    localStorage.setItem("subjects", JSON.stringify(subjects));
 }
 
-body.dark-mode .progress {
-background-color: #4caf50;
+function toggleTopics(subject) {
+    topicVisibility[subject] = !topicVisibility[subject];
+    updateUI();
 }
 
-body.dark-mode .toolbar,
-body.dark-mode #subjects {
-background-color: #1e1e1e;
+function updateUI() {
+    const container = document.getElementById("subjects");
+    container.innerHTML = "";
+
+    let allDone = 0, allTotal = 0;
+
+    for (let subject in subjects) {
+        let subDiv = document.createElement("div");
+        subDiv.className = "subject";
+
+        let totalDone = subjects[subject].reduce((a, t) => a + t.done, 0);
+        let totalAll = subjects[subject].reduce((a, t) => a + t.total, 0);
+        let subProgress = totalAll > 0 ? (totalDone / totalAll) * 100 : 0;
+
+        allDone += totalDone;
+        allTotal += totalAll;
+
+        // Initialize visibility if not set
+        if (topicVisibility[subject] === undefined) topicVisibility[subject] = true;
+
+        subDiv.innerHTML = `<h2>${subject}   
+            <button onclick="deleteSubject('${subject}')">❌</button>  
+            <button onclick="addTopic('${subject}')">➕ Topic</button>
+            <button onclick="toggleTopics('${subject}')">${topicVisibility[subject] ? '🔽' : '▶️'} Topics</button>
+        </h2>
+        <div class="progress-bar"><div class="progress" style="width:${subProgress}%"></div></div>`;
+
+        if (topicVisibility[subject]) {
+            subjects[subject].forEach((topic, idx) => {
+                let topicDiv = document.createElement("div");
+                topicDiv.className = "topic";
+                let topicProgress = topic.total > 0 ? (topic.done / topic.total) * 100 : 0;
+                topicDiv.innerHTML = `
+                    ${topic.name} (${topic.done}/${topic.total})
+                    <div class="progress-bar"><div class="progress" style="width:${topicProgress}%"></div></div>
+                    <button onclick="editTopicProgress('${subject}', ${idx})">✏️ Progress</button>
+                    <button onclick="renameTopic('${subject}', ${idx})">✏️ Name</button>
+                    <button onclick="editTopicTotal('${subject}', ${idx})">✏️ Total</button>
+                    <button onclick="deleteTopic('${subject}', ${idx})">❌</button>
+                `;
+                subDiv.appendChild(topicDiv);
+            });
+        }
+
+        container.appendChild(subDiv);
+    }
+
+    let overallPercent = allTotal > 0 ? (allDone / allTotal) * 100 : 0;
+    document.getElementById("overall-progress").style.width = overallPercent + "%";
+
+    saveData();
 }
 
-body.dark-mode button {
-background-color: #333;
-color: white;
-border: 1px solid #555;
+function addSubject() {
+    let name = prompt("Enter new subject name:");
+    if (name && !subjects[name]) {
+        subjects[name] = [{name: "Topic 1", done: 0, total: 10}];
+        updateUI();
+    }
 }
 
-  </style>    
-</head>    
-<body>    
-  <h1>📚 Study Routine Tracker By Rafid Iqbal</h1>    <div id="overall-container">    
-    <h2>Overall Progress</h2>    
-    <div class="progress-bar"><div id="overall-progress" class="progress"></div></div>    
-  </div>    <div class="toolbar">    
-    <button id="addSubjectBtn">➕ Add Subject</button>    
-  </div>    <div id="subjects"></div>  <button id="darkModeToggle">🌙 Dark Mode</button>    <script src="script.js"></script>    <script>    const toggleBtn = document.getElementById("darkModeToggle");    
+function deleteSubject(name) {
+    if (confirm(`Delete subject "${name}"?`)) {
+        delete subjects[name];
+        delete topicVisibility[name];
+        updateUI();
+    }
+}
 
-// Load saved theme    
-if (localStorage.getItem("theme") === "dark") {    
-  document.body.classList.add("dark-mode");    
-}    
+function addTopic(subject) {
+    let name = prompt("Enter topic name:");
+    if (name) {
+        subjects[subject].push({name, done: 0, total: 10});
+        updateUI();
+    }
+}
 
-toggleBtn.addEventListener("click", () => {    
-  document.body.classList.toggle("dark-mode");    
+function deleteTopic(subject, idx) {
+    if (confirm("Delete this topic?")) {
+        subjects[subject].splice(idx, 1);
+        updateUI();
+    }
+}
 
-  // Save theme preference    
-  if (document.body.classList.contains("dark-mode")) {    
-    localStorage.setItem("theme", "dark");    
-  } else {    
-    localStorage.setItem("theme", "light");    
-  }    
-});
+function editTopicProgress(subject, idx) {
+    let done = parseInt(prompt(`Enter completed lectures for "${subjects[subject][idx].name}":`, subjects[subject][idx].done));
+    if (!isNaN(done) && done >= 0 && done <= subjects[subject][idx].total) {
+        subjects[subject][idx].done = done;
+        updateUI();
+    }
+}
 
-</script>  </body>
+function renameTopic(subject, idx) {
+    let newName = prompt(`Enter new name for "${subjects[subject][idx].name}":`, subjects[subject][idx].name);
+    if (newName && newName.trim() !== "") {
+        subjects[subject][idx].name = newName.trim();
+        updateUI();
+    }
+}
 
+function editTopicTotal(subject, idx) {
+    let newTotal = parseInt(prompt(`Enter total lectures for "${subjects[subject][idx].name}":`, subjects[subject][idx].total));
+    if (!isNaN(newTotal) && newTotal > 0) {
+        if (subjects[subject][idx].done > newTotal) {
+            subjects[subject][idx].done = newTotal;
+        }
+        subjects[subject][idx].total = newTotal;
+        updateUI();
+    }
+}
+
+updateUI();
+</script>
+</body>
 </html>
