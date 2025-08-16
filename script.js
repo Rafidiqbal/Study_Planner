@@ -1,3 +1,18 @@
+// ====== Initialize subjects with migration for old data ======
+let stored = JSON.parse(localStorage.getItem("subjects")) || {};
+
+// Migrate old topics: ensure subtopics, done, total exist
+Object.keys(stored).forEach(subjectName => {
+  const topicList = stored[subjectName];
+  topicList.forEach(topic => {
+    if (!topic.hasOwnProperty("subtopics")) topic.subtopics = [];
+    if (!topic.hasOwnProperty("done")) topic.done = 0;
+    if (!topic.hasOwnProperty("total")) topic.total = 10;
+  });
+});
+
+const subjects = { ...stored };
+
 // Default subjects in case some are missing
 const defaultSubjects = {
   "Physics": Array.from({ length: 10 }, (_, i) => ({ name: `Topic ${i + 1}`, done: 0, total: 10, subtopics: [] })),
@@ -6,20 +21,8 @@ const defaultSubjects = {
   "Higher Math": Array.from({ length: 10 }, (_, i) => ({ name: `Topic ${i + 1}`, done: 0, total: 10, subtopics: [] }))
 };
 
-// Load stored data
-let stored = JSON.parse(localStorage.getItem("subjects")) || {};
-let subjects = { ...stored };
-
-// Add default subjects if missing
 Object.keys(defaultSubjects).forEach(sub => {
   if (!subjects[sub]) subjects[sub] = defaultSubjects[sub];
-});
-
-// Make sure every topic has subtopics
-Object.values(subjects).forEach(topicList => {
-  topicList.forEach(topic => {
-    if (!topic.hasOwnProperty("subtopics")) topic.subtopics = [];
-  });
 });
 
 const subjectsEl = document.getElementById("subjects");
@@ -38,6 +41,7 @@ function toggleSubtopics(topicElement) {
   container.style.display = container.style.display === "none" || container.style.display === "" ? "block" : "none";
 }
 
+// Update overall progress
 function updateOverallProgress() {
   let allDone = 0, allTotal = 0;
   Object.values(subjects).forEach(topicList => {
@@ -46,10 +50,8 @@ function updateOverallProgress() {
       allTotal += topic.total;
     });
   });
-  const percent = allTotal > 0 ? (allDone / allTotal) * 100 : 0;
-
   const overall = document.getElementById("overall-progress");
-  overall.style.width = percent + "%";
+  overall.style.width = allTotal > 0 ? (allDone / allTotal) * 100 + "%" : "0%";
 }
 
 function updateUI() {
@@ -90,7 +92,7 @@ function updateUI() {
     header.appendChild(headerBtns);
     subDiv.appendChild(header);
 
-    // Subject progress
+    // Subject progress bar
     const totalDone = topicList.reduce((a, t) => a + t.done, 0);
     const totalAll = topicList.reduce((a, t) => a + t.total, 0);
     const subProgBar = document.createElement("div");
@@ -101,7 +103,7 @@ function updateUI() {
     subProgBar.appendChild(subProg);
     subDiv.appendChild(subProgBar);
 
-    // Topics
+    // Topics with toggleable subtopics
     topicList.forEach((topic, idx) => {
       const topicDiv = document.createElement("div");
       topicDiv.className = "topic";
@@ -123,8 +125,7 @@ function updateUI() {
 
       const editProgressBtn = document.createElement("button");
       editProgressBtn.textContent = "✏️ Progress";
-      editProgressBtn.onclick = (e) => {
-        e.stopPropagation();
+      editProgressBtn.onclick = () => {
         const val = parseInt(prompt(`Enter completed lectures for "${topic.name}":`, String(topic.done)), 10);
         if (!Number.isNaN(val) && val >= 0 && val <= topic.total) {
           topic.done = val;
@@ -134,8 +135,7 @@ function updateUI() {
 
       const renameBtn = document.createElement("button");
       renameBtn.textContent = "✏️ Name";
-      renameBtn.onclick = (e) => {
-        e.stopPropagation();
+      renameBtn.onclick = () => {
         const newName = prompt(`Enter new name for "${topic.name}":`, topic.name);
         if (newName && newName.trim() !== "") {
           topic.name = newName.trim();
@@ -145,8 +145,7 @@ function updateUI() {
 
       const editTotalBtn = document.createElement("button");
       editTotalBtn.textContent = "✏️ Total";
-      editTotalBtn.onclick = (e) => {
-        e.stopPropagation();
+      editTotalBtn.onclick = () => {
         const newTotal = parseInt(prompt(`Enter total lectures for "${topic.name}":`, String(topic.total)), 10);
         if (!Number.isNaN(newTotal) && newTotal > 0) {
           if (topic.done > newTotal) topic.done = newTotal;
@@ -157,8 +156,7 @@ function updateUI() {
 
       const deleteBtn = document.createElement("button");
       deleteBtn.textContent = "❌";
-      deleteBtn.onclick = (e) => {
-        e.stopPropagation();
+      deleteBtn.onclick = () => {
         if (confirm("Delete this topic?")) {
           topicList.splice(idx, 1);
           updateUI();
@@ -174,7 +172,7 @@ function updateUI() {
       topicDiv.appendChild(bar);
       topicDiv.appendChild(btns);
 
-      // Subtopics
+      // Subtopics container
       const subContainer = document.createElement("div");
       subContainer.className = "subtopics-container";
       subContainer.style.display = "none";
@@ -198,9 +196,9 @@ function updateUI() {
 
   saveData();
   updateOverallProgress();
-};
+}
 
-// Add Subject button
+// Add Subject (toolbar)
 addSubjectBtn.onclick = () => {
   const name = prompt("Enter new subject name:");
   if (name) {
